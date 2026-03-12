@@ -19,6 +19,14 @@ const config: NextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'media.mayar.club',
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.mayar.id',
+      },
     ],
   },
 };

@@ -90,8 +90,8 @@ export async function createBooking(data: {
 
     // 1. Insert Booking
     await prisma.$executeRaw`
-      INSERT INTO booking (id, customerName, customerPhone, startDate, endDate, totalPrice, status, createdAt)
-      VALUES (${bookingId}, ${data.customerName}, ${data.customerPhone}, ${minStartDate}, ${maxEndDate}, ${data.totalPrice}, 'PENDING', ${now})
+      INSERT INTO booking (id, customerName, customerPhone, startDate, endDate, totalPrice, status, paymentMethod, createdAt, updatedAt)
+      VALUES (${bookingId}, ${data.customerName}, ${data.customerPhone}, ${minStartDate}, ${maxEndDate}, ${data.totalPrice}, 'PENDING', 'COD', ${now}, ${now})
     `
 
     // 2. Insert BookingItems

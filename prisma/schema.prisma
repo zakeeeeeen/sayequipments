@@ -28,26 +28,30 @@ model expense {
 }
 
 model admin {
-  id       String  @id
+  id       String  @id @default(uuid())
   username String  @unique(map: "Admin_username_key")
   password String
   name     String? @default("Admin") @db.VarChar(255)
 }
 
 model booking {
-  id            String        @id
-  customerName  String
-  customerPhone String
-  startDate     DateTime
-  endDate       DateTime
-  totalPrice    Int
-  status        String        @default("PENDING")
-  createdAt     DateTime      @default(now())
-  bookingitem   bookingitem[]
+  id                     String        @id @default(uuid())
+  customerName           String
+  customerPhone          String
+  startDate              DateTime
+  endDate                DateTime
+  totalPrice             Int
+  status                 String        @default("PENDING")
+  paymentMethod          String?       @default("COD") // COD, DP_50, FULL
+  mayarTransactionId     String?       @unique
+  mayarTransactionStatus String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  bookingitem            bookingitem[]
 }
 
 model bookingitem {
-  id         String    @id
+  id         String    @id @default(uuid())
   bookingId  String
   productId  String
   quantity   Int
@@ -63,60 +67,60 @@ model bookingitem {
 }
 
 model bookingstep {
-  id          String   @id
+  id          String   @id @default(uuid())
   title       String
   description String   @db.Text
   icon        String
   stepOrder   Int      @default(0)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
 }
 
 model faq {
-  id        String   @id
+  id        String   @id @default(uuid())
   question  String
   answer    String   @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model location {
-  id        String   @id
+  id        String   @id @default(uuid())
   name      String
   address   String
   mapUrl    String   @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model product {
-  id             String        @id
+  id             String        @id @default(uuid())
   name           String
   description    String
   stock          Int
   image          String
   category       String
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime
   price1Day      Int           @default(0)
   price2Days     Int           @default(0)
   price3Days     Int           @default(0)
   priceOver3Days Int           @default(0)
   isFeatured     Boolean       @default(false)
   bookingitem    bookingitem[]
+  updatedAt      DateTime      @updatedAt
 }
 
 model rentalterm {
-  id        String   @id
+  id        String   @id @default(uuid())
   content   String   @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model sitesettings {
-  id                   String   @id
+  id                   String   @id @default(uuid())
   whatsappNumber       String   @default("6281234567890")
-  updatedAt            DateTime
+  updatedAt            DateTime @updatedAt
   aboutDescription     String?  @db.Text
   aboutTitle           String   @default("Tentang SayEquipment")
   heroBackgroundImage  String?
@@ -129,7 +133,7 @@ model sitesettings {
 }
 
 model testimonial {
-  id        String   @id
+  id        String   @id @default(uuid())
   name      String
   role      String
   content   String   @db.Text
@@ -137,5 +141,5 @@ model testimonial {
   avatar    String?
   isShow    Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 }

@@ -24,22 +24,24 @@ export function ProductFilters({ categories }: ProductFiltersProps) {
   const debouncedSearch = useDebounce(search, 500)
 
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString())
-    
+    const params = new URLSearchParams()
+
     if (debouncedSearch) {
       params.set("search", debouncedSearch)
-    } else {
-      params.delete("search")
     }
 
     if (selectedCategory) {
       params.set("category", selectedCategory)
-    } else {
-      params.delete("category")
     }
 
-    router.push(`/products?${params.toString()}`)
-  }, [debouncedSearch, selectedCategory, router, searchParams])
+    const newQuery = params.toString()
+    const currentQuery = searchParams.toString()
+
+    if (newQuery !== currentQuery) {
+      router.push(`/products?${newQuery}`)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, selectedCategory])
 
   return (
     <div className="space-y-6 mb-8">

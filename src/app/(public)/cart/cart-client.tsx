@@ -12,6 +12,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { BackButton } from "@/components/back-button"
 import { generateInvoicePDF, InvoiceData } from "@/lib/pdf-generator"
 
+import { useRouter } from "next/navigation"
+
 interface CartClientProps {
   whatsappNumber: string
 }
@@ -27,12 +29,13 @@ interface BookingSuccessData {
 
 export function CartClient({ whatsappNumber }: CartClientProps) {
   const { items, removeItem, total, clearCart } = useCartStore()
+  const router = useRouter()
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState<BookingSuccessData | null>(null)
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "DP_50%">("COD")
+  const [paymentMethod, setPaymentMethod] = useState<"COD" | "DP_50%" | "FULL_MAYAR">("COD")
 
   const handleCheckoutClick = () => {
     if (!name || !phone) {
@@ -112,20 +115,22 @@ export function CartClient({ whatsappNumber }: CartClientProps) {
         return
       }
 
-      if (paymentMethod === "DP_50%") {
-        const res = await fetch("/api/payments/mayar/create-dp", {
+      if (paymentMethod === "DP_50%" || paymentMethod === "FULL_MAYAR") {
+        const paymentType = paymentMethod === "DP_50%" ? "DP_50" : "FULL"
+        const res = await fetch("/api/payments/mayar/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ bookingId: result.bookingId })
+          body: JSON.stringify({ bookingId: result.bookingId, paymentType })
         })
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          toast.error(data?.error || "Gagal membuat link pembayaran DP")
+          toast.error(data?.error || "Gagal membuat QR pembayaran Mayar")
           setIsSubmitting(false)
           return
         }
         const data = await res.json()
-        window.location.href = data.url
+        clearCart()
+        router.push(data.paymentPageUrl || `/payment/mayar?bookingId=${result.bookingId}`)
         return
       } else {
         setBookingSuccess({
@@ -294,10 +299,22 @@ export function CartClient({ whatsappNumber }: CartClientProps) {
                 >
                   DP 50% via Mayar
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("FULL_MAYAR")}
+                  className={`flex-1 px-4 py-2 rounded-lg border ${paymentMethod === "FULL_MAYAR" ? "border-primary-600 text-primary-700 bg-primary-50" : "border-earth-300 text-earth-700 bg-white"}`}
+                >
+                  Lunas via Mayar
+                </button>
               </div>
               {paymentMethod === "DP_50%" && (
                 <p className="text-sm text-earth-600">
                   Nominal DP: <span className="font-semibold">{formatCurrency(Math.round(total() * 0.5))}</span>
+                </p>
+              )}
+              {paymentMethod === "FULL_MAYAR" && (
+                <p className="text-sm text-earth-600">
+                  Nominal pembayaran: <span className="font-semibold">{formatCurrency(total())}</span>
                 </p>
               )}
             </div>
@@ -319,12 +336,20 @@ export function CartClient({ whatsappNumber }: CartClientProps) {
               ) : (
                 <>
                   <MessageCircle className="h-5 w-5" />
-                  <span>{paymentMethod === "DP_50%" ? "Bayar DP 50%" : "Checkout"}</span>
+                  <span>
+                    {paymentMethod === "DP_50%"
+                      ? "Bayar DP 50%"
+                      : paymentMethod === "FULL_MAYAR"
+                        ? "Bayar Lunas"
+                        : "Checkout"}
+                  </span>
                 </>
               )}
             </button>
             <p className="text-xs text-center text-earth-500 mt-3">
-              {paymentMethod === "DP_50%" ? "Anda akan diarahkan ke halaman pembayaran Mayar." : "Anda akan diarahkan ke WhatsApp untuk konfirmasi ketersediaan dan pembayaran."}
+              {paymentMethod === "COD"
+                ? "Anda akan diarahkan ke WhatsApp untuk konfirmasi ketersediaan dan pembayaran."
+                : "Anda akan diarahkan ke QR pembayaran Mayar."}
             </p>
           </div>
         </div>
