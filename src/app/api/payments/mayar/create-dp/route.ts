@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { createMayarQrCode } from "@/lib/mayar"
 import { prisma } from "@/lib/prisma"
 
 export async function POST(req: Request) {
@@ -14,20 +15,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 })
     }
 
-    const base = process.env.MAYAR_CHECKOUT_URL
-    const appUrl = process.env.APP_URL
-    if (!base || !appUrl) {
-      return NextResponse.json({ error: "Missing MAYAR_CHECKOUT_URL or APP_URL" }, { status: 500 })
-    }
-
     const dpAmount = Math.round(booking.totalPrice * 0.5)
-    const returnUrl = `${appUrl}/payment/success?bookingId=${booking.id}`
-    const cancelUrl = `${appUrl}/payment/cancel?bookingId=${booking.id}`
+    const qrCode = await createMayarQrCode({ amount: dpAmount })
 
-    const url = `${base}?amount=${dpAmount}&ref=${encodeURIComponent(booking.id)}&return_url=${encodeURIComponent(returnUrl)}&cancel_url=${encodeURIComponent(cancelUrl)}`
-
-    return NextResponse.json({ url })
-  } catch {
-    return NextResponse.json({ error: "Internal error" }, { status: 500 })
+    return NextResponse.json({
+      amount: qrCode.amount,
+      bookingId: booking.id,
+      url: qrCode.url,
+    })
+  } catch (error) {
+    console.error("Failed to create Mayar QR code:", error)
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Internal error",
+      },
+      { status: 500 }
+    )
   }
 }

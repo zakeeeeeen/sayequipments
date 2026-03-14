@@ -407,12 +407,12 @@ async function main() {
 
   // FAQs
   for (const faq of faqs) {
-    const existingFAQ = await prisma.fAQ.findFirst({
+    const existingFAQ = await prisma.faq.findFirst({
       where: { question: faq.question }
     })
 
     if (!existingFAQ) {
-      await prisma.fAQ.create({ data: faq })
+      await prisma.faq.create({ data: faq })
       console.log(`Created FAQ: ${faq.question}`)
     }
   }
@@ -420,10 +420,10 @@ async function main() {
   // Rental Terms
   // Note: RentalTerm doesn't have a unique field like 'name' or 'question', so we might duplicate if we run multiple times.
   // We'll just check if *any* terms exist, if not, we seed.
-  const existingTerms = await prisma.rentalTerm.count()
+  const existingTerms = await prisma.rentalterm.count()
   if (existingTerms === 0) {
     for (const term of rentalTerms) {
-      await prisma.rentalTerm.create({ data: term })
+      await prisma.rentalterm.create({ data: term })
       console.log(`Created Rental Term: ${term.content.substring(0, 20)}...`)
     }
   } else {
@@ -432,20 +432,20 @@ async function main() {
 
   // Booking Steps
   for (const step of bookingSteps) {
-    const existingStep = await prisma.bookingStep.findFirst({
+    const existingStep = await prisma.bookingstep.findFirst({
       where: { title: step.title }
     })
 
     if (!existingStep) {
-      await prisma.bookingStep.create({ data: step })
+      await prisma.bookingstep.create({ data: step })
       console.log(`Created Booking Step: ${step.title}`)
     }
   }
 
   // Site Settings
-  const existingSettings = await prisma.siteSettings.findFirst()
+  const existingSettings = await prisma.sitesettings.findFirst()
   if (!existingSettings) {
-    await prisma.siteSettings.create({
+    await prisma.sitesettings.create({
       data: {
         whatsappNumber: "6281234567890"
       }
